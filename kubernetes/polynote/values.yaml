@@ -14,6 +14,16 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# Environment variables for all airflow containers
+env:
+  - name: "environment"
+    value: "production"
+  - name: "PYSPARK_ALLOW_INSECURE_GATEWAY"
+    value: "1"
+
+livenessProbe:
+  enabled: false
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -37,8 +47,31 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: ClusterIP
-  port: 80
+  type: LoadBalancer # ClusterIP
+  gcpInternalLB: true
+  port: 8192
+  target: 80
+  protocol: TCP
+  name: polynote
+
+config:
+  path: "/opt/config/config.yml"
+  readOnly: false
+  mode: 0600
+
+livenessProbe:
+  enabled: false
+  path: /
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: false
+  path: /
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  failureThreshold: 3  
 
 ingress:
   enabled: false

@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: polynote-config
+  name: poly-config
   labels:
-    app: polynote
+    app: poly
 data:
   config.yml: |-
     listen:
@@ -19,33 +19,38 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  name: polynote-service
+  name: poly-service
   annotations:
-      cloud.google.com/load-balancer-type: Internal
+    cloud.google.com/load-balancer-type: Internal
 spec:
   ports:
-  - port: 8192
+  - name: poly
+    port: 80
     protocol: TCP
     targetPort: 8192
+  - name: spark
+    port: 4040
+    protocol: TCP
+    targetPort: 4040    
   selector:
-    app: polynote
+    app: poly
   type: LoadBalancer
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: polynote
-  name: polynote-deployment
+    app: poly
+  name: poly-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: polynote
+      app: poly
   template:
     metadata:
       labels:
-        app: polynote
+        app: poly
     spec:
       affinity:
         nodeAffinity:
@@ -57,26 +62,26 @@ spec:
                 values:
                 - jupyter  
       containers:
-      - args:
+      - name: poly
+        args:
         - --config
         - /opt/config/config.yml
         env:
         - name: PYSPARK_ALLOW_INSECURE_GATEWAY
           value: "1"
-        image: chethanuk/polynote:0.3.12-py38-spark
-        # image: chethanuk/polynote:0.3.12-py38-sparkhd3
+        # image: chethanuk/polynote:0.3.12-py38-spark
+        image: chethanuk/polynote:0.3.12-py38-sparkhd3
         imagePullPolicy: Always
-        # image: polynote/polynote:latest
-        name: polynote
+        # image: poly/poly:latest
         resources:
           requests:
-            cpu: 8192m
-            memory: 10240Mi
-          limits:
-            cpu: 10240m
-            memory: 20480Mi                    
-        ports:
-        - containerPort: 8192
+            cpu: 10000m
+            memory: 25Gi
+          # limits:
+          #   cpu: 10000m
+          #   memory: 26Gi 
+        # ports:
+        # - containerPort: 8192
         volumeMounts:
         - name: config
           mountPath: /opt/config/config.yml
@@ -88,6 +93,6 @@ spec:
       - name: config
         configMap:
           # defaultMode: 0600
-          name: polynote-config
+          name: poly-config
       - name: data
         emptyDir: {}

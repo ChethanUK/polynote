@@ -33,23 +33,48 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+          - --config
+          - {{ .Values.config.path }}          
+          env:
+          {{- include "custom_environment_variables" . | indent 10 }}
           ports:
-            - name: {{ .Chart.Name }}
-              containerPort: 8192
-          {{- if not .Values.livenessProbe.enabled }}    
+            - name: {{ .Values.service.name }}
+              containerPort: {{ .Values.service.port }}
+          {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /
-              port: http
-          {{- end }}    
-          {{- if not .Values.readinessProbe.enabled }}    
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.service.target }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds}}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /
-              port: http
-          {{- end }}    
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.service.target }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: config
+            mountPath: /opt/config
+            readOnly: {{ .Values.config.readOnly }}
+            # subPath: config.yml
+          - name: data
+            mountPath: /opt/notebooks/
+      volumes:
+      - name: config
+        configMap:
+          {{- if .Values.config.readOnly }}    
+          defaultMode: {{ .Values.configMap.defaultMode }}
+          {{- end }}
+          name: {{ include "polynote.fullname" . }}-config
+      - name: data
+        emptyDir: {}    
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

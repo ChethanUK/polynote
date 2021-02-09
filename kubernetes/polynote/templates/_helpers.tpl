@@ -60,3 +60,12 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/* User defined environment variables */}}
+{{- define "custom_environment_variables" }}
+  # Dynamically created environment variables
+  {{- range $i, $config := .Values.env }}
+  - name: {{ $config.name }}
+    value: {{ $config.value | quote }}
+  {{- end }}
+{{- end }}

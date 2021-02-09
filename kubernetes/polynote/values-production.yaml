@@ -1,0 +1,28 @@
+replicaCount: 1
+
+image:
+  pullPolicy: IfNotPresent
+
+config:
+  path: "/opt/config/prodconfig.yml"
+
+resources: 
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. uncomment the following lines, adjust them as necessary, 
+  # and remove the curly braces after 'resources:'.
+  requests:
+    cpu: 10000m
+    memory: 25Gi
+  limits:
+    cpu: 10000m
+    memory: 25Gi
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: component
+          operator: In
+          values:
+          - jupyter
