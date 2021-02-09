@@ -1,0 +1,93 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: polynote-config
+  labels:
+    app: polynote
+data:
+  config.yml: |-
+    listen:
+      host: 0.0.0.0
+
+    storage:
+      dir: /opt/notebooks
+      mounts:
+        examples:
+          dir: examples
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: polynote-service
+  annotations:
+      cloud.google.com/load-balancer-type: Internal
+spec:
+  ports:
+  - port: 8192
+    protocol: TCP
+    targetPort: 8192
+  selector:
+    app: polynote
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: polynote
+  name: polynote-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: polynote
+  template:
+    metadata:
+      labels:
+        app: polynote
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: component
+                operator: In
+                values:
+                - jupyter  
+      containers:
+      - args:
+        - --config
+        - /opt/config/config.yml
+        env:
+        - name: PYSPARK_ALLOW_INSECURE_GATEWAY
+          value: "1"
+        image: chethanuk/polynote:0.3.12-py38-spark
+        # image: chethanuk/polynote:0.3.12-py38-sparkhd3
+        imagePullPolicy: Always
+        # image: polynote/polynote:latest
+        name: polynote
+        resources:
+          requests:
+            cpu: 8192m
+            memory: 10240Mi
+          limits:
+            cpu: 10240m
+            memory: 20480Mi                    
+        ports:
+        - containerPort: 8192
+        volumeMounts:
+        - name: config
+          mountPath: /opt/config/config.yml
+          readOnly: true
+          subPath: config.yml
+        - name: data
+          mountPath: /opt/notebooks/
+      volumes:
+      - name: config
+        configMap:
+          # defaultMode: 0600
+          name: polynote-config
+      - name: data
+        emptyDir: {}

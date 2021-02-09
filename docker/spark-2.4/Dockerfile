@@ -14,6 +14,9 @@ WORKDIR /opt
 
 USER root
 
+# Uid: ( 1000/   polly)   Gid: ( 1000/   polly)
+RUN chown -R polly:polly /opt &&\
+    chown -R polly:polly /opt/config
 COPY install_spark.sh .
 RUN ./install_spark.sh && rm ./install_spark.sh
 ENV SPARK_HOME="/opt/spark"

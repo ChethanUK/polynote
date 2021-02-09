@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "polynote.fullname" . }}
+  labels:
+    {{- include "polynote.labels" . | nindent 4 }}
+data:
+    flyway.conf.template: {{ (.Files.Get "conf/config.yml") . | quote}}
