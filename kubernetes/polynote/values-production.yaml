@@ -13,9 +13,18 @@ resources:
   requests:
     cpu: 10000m
     memory: 25Gi
-  limits:
-    cpu: 10000m
-    memory: 25Gi
+#  limits:
+#    cpu: 10000m
+#    memory: 25Gi
+
+sync:
+  enabled: true
+  rclone:
+    gcs:
+      bucket: "your-bucket"
+      saSecretName: "gcp-sa-account"
+    image:
+      pullPolicy: Always
 
 affinity:
   nodeAffinity:

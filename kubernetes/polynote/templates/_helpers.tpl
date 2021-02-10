@@ -69,3 +69,64 @@ Create the name of the service account to use
     value: {{ $config.value | quote }}
   {{- end }}
 {{- end }}
+
+{{/* RClone volumeMounts */}}
+{{- define "sidecars.sync.volumeMounts" }}
+- name: notebooks-folder
+  mountPath: {{ .Values.sync.notebooks.path }}
+  mountPropagation: Bidirectional
+- name: data-folder
+  mountPath: {{ .Values.sync.data.path }}
+  mountPropagation: Bidirectional
+{{- end -}}
+
+{{/* RClone volumes */}}
+{{- define "sidecar.sync.volumes" }}
+- name: notebooks-folder # mountPath
+  emptyDir:
+    sizeLimit: {{ .Values.sync.rclone.maxSizeLimit }}
+- name: data-folder # mountPath
+  emptyDir:
+    sizeLimit: {{ .Values.sync.rclone.maxSizeLimit }}
+{{- end -}}
+
+{{/* RClone sidecar container */}}
+{{- define "sidecars.sync.container" }}
+- name: gcs-sync
+  image: "{{ .Values.sync.rclone.image.repo }}:{{ .Values.sync.rclone.image.tag }}"
+  imagePullPolicy: {{ .Values.sync.rclone.image.pullPolicy }}
+  resources:
+    limits:
+      cpu: {{ .Values.sync.rclone.limits.cpu }}
+      memory: {{ .Values.sync.rclone.limits.memory }}
+    requests:
+      cpu: {{ .Values.sync.rclone.requests.cpu }}
+      memory: {{ .Values.sync.rclone.requests.memory }}
+  env:
+    - name: BUCKET
+      value: {{ .Values.sync.rclone.gcs.bucket }}
+    - name: SYNC_DIRS
+      value: "{{ .Values.sync.rclone.syncDirs }}"
+    - name: DESTINATION_HOME
+      value: {{ .Values.polynoteHome }}
+    - name: RCLONE_GCS_SERVICE_ACCOUNT_FILE
+      value: {{ .Values.sync.rclone.gcs.mountPath }}
+    - name: SLEEP
+      value: "{{ .Values.sync.rclone.sleep }}"
+    - name: EXTRA_ARGS
+      value: "{{ .Values.sync.rclone.extraArgs }}"
+  securityContext:
+    runAsUser: 0
+    runAsGroup: 0
+    privileged: true
+  volumeMounts:
+    - name: notebooks-folder
+      mountPath: {{ .Values.sync.notebooks.path }}
+      mountPropagation: Bidirectional
+    - name: data-folder
+      mountPath: {{ .Values.sync.data.path }}
+      mountPropagation: Bidirectional
+    - mountPath: {{ .Values.sync.rclone.gcs.mountPath }}
+      name: gcp-gcs-sa-volume
+      subPath: {{ .Values.sync.rclone.gcs.saFilename }}
+{{- end }}

@@ -3,39 +3,51 @@ kind: Deployment
 metadata:
   name: {{ include "polynote.fullname" . }}
   labels:
-    {{- include "polynote.labels" . | nindent 4 }}
+  {{- include "polynote.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
   selector:
     matchLabels:
-      {{- include "polynote.selectorLabels" . | nindent 6 }}
+  {{- include "polynote.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "polynote.selectorLabels" . | nindent 8 }}
+    {{- include "polynote.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 8 }}
       {{- end }}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 10
       serviceAccountName: {{ include "polynote.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
+        # Polynote - main container
         - name: {{ .Chart.Name }}
           securityContext:
+            {{- if .Values.sync.enabled }}
+            privileged: true
+            {{- end }}
+            {{- if not .Values.sync.enabled }}
             {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-          - --config
-          - {{ .Values.config.path }}          
+            - --config
+            - {{ .Values.config.path }}
           env:
           {{- include "custom_environment_variables" . | indent 10 }}
           ports:
@@ -58,32 +70,41 @@ spec:
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
           {{- end }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+          {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-          - name: config
-            mountPath: /opt/config
-            readOnly: {{ .Values.config.readOnly }}
-            # subPath: config.yml
-          - name: data
-            mountPath: /opt/notebooks/
+            {{- if .Values.sync.enabled }}
+            {{ include "sidecars.sync.volumeMounts" . | indent 12 }}
+            {{- end }}
+            - name: config
+              mountPath: /opt/config
+              readOnly: {{ .Values.config.readOnly }}
+              # subPath: config.yml
+        # SYNC - GCS RClone sidecar container
+      {{- if .Values.sync.enabled }}
+      {{ include "sidecars.sync.container" . | indent 8 }}
+      {{- end }}
       volumes:
-      - name: config
-        configMap:
-          {{- if .Values.config.readOnly }}    
-          defaultMode: {{ .Values.configMap.defaultMode }}
-          {{- end }}
-          name: {{ include "polynote.fullname" . }}-config
-      - name: data
-        emptyDir: {}    
+        {{- if .Values.sync.enabled }}
+        {{ include "sidecar.sync.volumes" . | indent 8 }}
+        {{- end }}
+        - name: gcp-gcs-sa-volume
+          secret:
+            secretName: {{ .Values.sync.rclone.gcs.saSecretName }}
+        - name: config
+          configMap:
+            {{- if .Values.config.readOnly }}
+            defaultMode: {{ .Values.config.mode }}
+            {{- end }}
+            name: {{ include "polynote.fullname" . }}-config
       {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      {{- toYaml . | nindent 8 }}
+  {{- end }}
