@@ -4,8 +4,8 @@ replicaCount: 1
 # image: chethanuk/polynote:0.3.12-py38-sparkhd3
 image:
   repository: chethanuk/polynote
-  pullPolicy: IfNotPresent
-  tag: "0.3.12-py38-sparkhd3"
+  pullPolicy: Always
+  tag: "0.3.12-spark3hd3-py38-su" # 0.3.12-spark3hd3-py38
 
 config:
   path: "/opt/config/prodconfig.yml"
@@ -21,12 +21,16 @@ resources:
 #    cpu: 10000m
 #    memory: 25Gi
 
+service:
+  spark:
+    enabled: true
+
 sync:
   enabled: true
   rclone:
     sleep: 30
     gcs:
-      bucket: "6-bucket"
+      bucket: "pr-6853a6c6-bucket"
       saSecretName: "gcp-sa-account"
     image:
       tag: 1.5.4-code

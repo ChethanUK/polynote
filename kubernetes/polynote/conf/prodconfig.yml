@@ -18,7 +18,7 @@
 ###############################################################################
 
 listen:
- host: 0.0.0.0
+  host: 0.0.0.0
 #  host: 127.0.0.1
 #  port: 8192
 
@@ -35,28 +35,28 @@ listen:
 ############################################################################################
 
 storage:
- # The base directory Polynote should use when looking for notebooks. This location can be absolute or
- # relative to Polynote's working directory.
- dir: /opt/
- # These are additional mount points. Folders specified here will be 'mounted' into the base directory
- # and visible by their keys - so `foo: dir: bar` will show a folder `foo` in the UI that shows the contents of the
- # file system under `bar/`
- mounts:
-#   examples:
-#     dir: examples
-   code:
-     dir: /opt/src
-   data:
-     dir: /opt/data
-   config:
-     dir: /opt/config
-#   notebooks:
-#     dir: /opt/notebooks
+  # The base directory Polynote should use when looking for notebooks. This location can be absolute or
+  # relative to Polynote's working directory.
+  dir: /opt/
+  # These are additional mount points. Folders specified here will be 'mounted' into the base directory
+  # and visible by their keys - so `foo: dir: bar` will show a folder `foo` in the UI that shows the contents of the
+  # file system under `bar/`
+  mounts:
+    #   examples:
+    #     dir: examples
+    code:
+      dir: /opt/src
+    data:
+      dir: /opt/data
+    config:
+      dir: /opt/config
+    #   notebooks:
+    #     dir: /opt/notebooks
 
-  #  team_notebooks:
-  #    dir: /shared/notebooks
- # The location Polynote puts various caches, such as virtual environments created for your notebooks.
- cache: tmp
+    #  team_notebooks:
+    #    dir: /shared/notebooks
+  # The location Polynote puts various caches, such as virtual environments created for your notebooks.
+  cache: tmp
 
 ##########################################################
 # Configure the way Polynote runs Kernels and Interpreters
@@ -82,18 +82,18 @@ storage:
 ############################################################################################
 
 repositories:
-#  - ivy:
-#      base: https://my-artifacts.org/artifacts/
-#  - ivy:
-#      base: https://my-custom-ivy-repo.org/artifacts/
-#      artifact_pattern: [orgPath]/[module](_[scalaVersion])(_[sbtVersion])/[revision]/[artifact]-[revision](-[classifier]).[ext]
-#      metadata_pattern: [orgPath]/[module](_[scalaVersion])(_[sbtVersion])/[revision]/[module](_[scalaVersion])(_[sbtVersion])-[revision]-ivy.xml
-#      changing: true
- - maven:
-     base: http://central.maven.org/maven2/
- - maven:
-     base: http://oss.sonatype.org/content/repositories/snapshots
-     changing: true
+  #  - ivy:
+  #      base: https://my-artifacts.org/artifacts/
+  #  - ivy:
+  #      base: https://my-custom-ivy-repo.org/artifacts/
+  #      artifact_pattern: [orgPath]/[module](_[scalaVersion])(_[sbtVersion])/[revision]/[artifact]-[revision](-[classifier]).[ext]
+  #      metadata_pattern: [orgPath]/[module](_[scalaVersion])(_[sbtVersion])/[revision]/[module](_[scalaVersion])(_[sbtVersion])-[revision]-ivy.xml
+  #      changing: true
+  - maven:
+      base: http://central.maven.org/maven2/
+  - maven:
+      base: http://oss.sonatype.org/content/repositories/snapshots
+      changing: true
 
 ############################################################################################
 # Default dependencies. Uncommenting the following lines would add some default dependencies
@@ -101,17 +101,18 @@ repositories:
 ############################################################################################
 
 dependencies:
-# scala:
-#   - org.typelevel:cats-core_2.11:1.6.0
-#    - com.mycompany:my-library:jar:all:1.0.0
- python:
-   - requests
-   - koalas==1.6.0
-   - pyspark-stubs==3.0.0.post1
-   - scikit-learn==0.24.1
-   - google-cloud-storage==1.35.1
-   - PuLP==2.4
-   - loguru==0.5.3
+  scala:
+    - https://repo1.maven.org/maven2/io/prestosql/presto-jdbc/331/presto-jdbc-331.jar
+  #   - org.typelevel:cats-core_2.11:1.6.0
+  #    - com.mycompany:my-library:jar:all:1.0.0
+  python:
+    - requests
+    - koalas==1.6.0
+    - pyspark-stubs==3.0.0.post1
+    - scikit-learn==0.24.1
+    - google-cloud-storage==1.35.1
+    - PuLP==2.4
+    - loguru==0.5.3
 #   - pyspark==3.0.1
 #    - urllib3==1.25.3
 
@@ -148,14 +149,35 @@ dependencies:
 #
 #################################################################################
 
-#spark:
-#  properties:
-#    spark.driver.memory: 28g
-#    spark.executor.memory: 60g
-#    spark.driver.userClasspathFirst: true
-#    spark.executor.userClasspathFirst: true
-#  spark_submit_args: "--some --arguments"
-#  dist_classpath_filter: hadoop.*\.jar
+spark:
+  properties:
+    spark.driver.memory: 24g
+    # spark.executor.memory: 24g
+    spark.sql.execution.arrow.pyspark.fallback.enabled: true # Optimizations enabled by arrow will fallback automatically
+    # to non-optimized implementations if an error occurs.
+    spark.sql.execution.arrow.pyspark.enabled: true
+    spark.sql.execution.arrow.maxRecordsPerBatch: 20000
+    # spark.sql.execution.pandas.udf.buffer.size
+    spark.sql.files.ignoreCorruptFiles: true # Whether to ignore corrupt files
+    spark.sql.files.maxPartitionBytes: "128MB" # maximum number of bytes to pack into a single partition when reading files.
+    spark.sql.parquet.mergeSchema: true # Parquet data source merges schemas collected from all data files
+    spark.sql.parquet.filterPushdown: true
+    spark.sql.parquet.recordLevelFilter.enabled: true
+    spark.sql.session.timeZone: "Asia/Kolkata"
+    spark.sql.adaptive.enabled: true # re-optimizes the query plan in middle
+    spark.sql.ansi.enabled: true
+    spark.sql.cbo.enabled: true
+    spark.driver.extraJavaOptions: "-XX:+UnlockExperimentalVMOptions"
+    spark.executor.extraJavaOptions: "-XX:+UnlockExperimentalVMOptions"
+    spark.python.worker.memory: "512m" # "2g" Amount of memory to use per python worker process during aggregation
+    # spark.jars
+    spark.ui.showConsoleProgress: true
+    spark.memory.fraction: 0.6
+    # spark.dynamicAllocation.enabled: true # scales the number of executors registered with this application up and down based on the workload
+    # spark.driver.userClasspathFirst: true
+    # spark.executor.userClasspathFirst: true
+    # spark_submit_args: "--some --arguments"
+    # dist_classpath_filter: hadoop.*\.jar
 
 
 ########## Front-end Configuration ################################################################################

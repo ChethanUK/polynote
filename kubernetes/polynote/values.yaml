@@ -37,7 +37,7 @@ sync:
       mountPath: "/opt/gcloud/gcp-service-account.json"
     image:
       repo: chethanuk/rclone
-      tag: 1.5.4    
+      tag: 1.5.4
       pullPolicy: IfNotPresent
     limits:
       cpu: 1000m
@@ -45,7 +45,7 @@ sync:
     requests:
       cpu: 100m
       memory: 128Mi
-  
+
 
 # Environment variables for all airflow containers
 env:
@@ -84,6 +84,13 @@ service:
   target: 8192
   protocol: TCP
   name: polynote
+  spark:
+    enabled: false
+    name: sparkui
+    port: 4040
+    target: 4040
+    protocol: TCP
+
 
 config:
   path: "/opt/config/config.yml"
@@ -102,7 +109,7 @@ readinessProbe:
   path: /
   initialDelaySeconds: 20
   periodSeconds: 10
-  failureThreshold: 3  
+  failureThreshold: 3
 
 ingress:
   enabled: false
@@ -134,7 +141,7 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 90
-  targetMemoryUtilizationPercentage: 90  
+  targetMemoryUtilizationPercentage: 90
 
 nodeSelector: {}
 

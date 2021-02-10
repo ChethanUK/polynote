@@ -15,5 +15,11 @@ spec:
       port: {{ .Values.service.port }}
       targetPort: {{ .Values.service.target }}
       protocol: {{ .Values.service.protocol }}
+    {{- if .Values.service.spark.enabled }}
+    - name: {{ .Values.service.spark.name }}
+      port: {{ .Values.service.spark.port }}
+      targetPort: {{ .Values.service.spark.target }}
+      protocol: {{ .Values.service.spark.protocol }}
+    {{- end }}
   selector:
     {{- include "polynote.selectorLabels" . | nindent 4 }}
