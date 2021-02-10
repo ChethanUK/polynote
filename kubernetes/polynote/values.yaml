@@ -22,10 +22,13 @@ sync:
     path: /opt/notebooks
   data:
     path: /opt/data
+  code:
+    path: /opt/src
   rclone:
     maxSizeLimit: 200M
     sleep: 60
     syncDirs: "notebooks data"
+    codeDirs: "src"
     extraArgs: "-v --cache-chunk-no-memory"
     gcs:
       bucket: "your-bucket-name"

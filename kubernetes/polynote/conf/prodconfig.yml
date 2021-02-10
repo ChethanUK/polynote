@@ -37,13 +37,22 @@ listen:
 storage:
  # The base directory Polynote should use when looking for notebooks. This location can be absolute or
  # relative to Polynote's working directory.
- dir: /opt/notebooks
+ dir: /opt/
  # These are additional mount points. Folders specified here will be 'mounted' into the base directory
  # and visible by their keys - so `foo: dir: bar` will show a folder `foo` in the UI that shows the contents of the
  # file system under `bar/`
  mounts:
-   examples:
-     dir: examples
+#   examples:
+#     dir: examples
+   code:
+     dir: /opt/src
+   data:
+     dir: /opt/data
+   config:
+     dir: /opt/config
+#   notebooks:
+#     dir: /opt/notebooks
+
   #  team_notebooks:
   #    dir: /shared/notebooks
  # The location Polynote puts various caches, such as virtual environments created for your notebooks.
@@ -92,11 +101,18 @@ repositories:
 ############################################################################################
 
 dependencies:
- scala:
-   - org.typelevel:cats-core_2.11:1.6.0
+# scala:
+#   - org.typelevel:cats-core_2.11:1.6.0
 #    - com.mycompany:my-library:jar:all:1.0.0
  python:
    - requests
+   - koalas==1.6.0
+   - pyspark-stubs==3.0.0.post1
+   - scikit-learn==0.24.1
+   - google-cloud-storage==1.35.1
+   - PuLP==2.4
+   - loguru==0.5.3
+#   - pyspark==3.0.1
 #    - urllib3==1.25.3
 
 ########################################################################################

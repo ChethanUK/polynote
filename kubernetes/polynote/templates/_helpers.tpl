@@ -78,6 +78,9 @@ Create the name of the service account to use
 - name: data-folder
   mountPath: {{ .Values.sync.data.path }}
   mountPropagation: Bidirectional
+- name: code-folder
+  mountPath: {{ .Values.sync.code.path }}
+  mountPropagation: Bidirectional
 {{- end -}}
 
 {{/* RClone volumes */}}
@@ -86,6 +89,9 @@ Create the name of the service account to use
   emptyDir:
     sizeLimit: {{ .Values.sync.rclone.maxSizeLimit }}
 - name: data-folder # mountPath
+  emptyDir:
+    sizeLimit: {{ .Values.sync.rclone.maxSizeLimit }}
+- name: code-folder # mountPath
   emptyDir:
     sizeLimit: {{ .Values.sync.rclone.maxSizeLimit }}
 {{- end -}}
@@ -107,6 +113,8 @@ Create the name of the service account to use
       value: {{ .Values.sync.rclone.gcs.bucket }}
     - name: SYNC_DIRS
       value: "{{ .Values.sync.rclone.syncDirs }}"
+    - name: CODE_DIRS
+      value: "{{ .Values.sync.rclone.codeDirs }}"
     - name: DESTINATION_HOME
       value: {{ .Values.polynoteHome }}
     - name: RCLONE_GCS_SERVICE_ACCOUNT_FILE
@@ -125,6 +133,9 @@ Create the name of the service account to use
       mountPropagation: Bidirectional
     - name: data-folder
       mountPath: {{ .Values.sync.data.path }}
+      mountPropagation: Bidirectional
+    - name: code-folder
+      mountPath: {{ .Values.sync.code.path }}
       mountPropagation: Bidirectional
     - mountPath: {{ .Values.sync.rclone.gcs.mountPath }}
       name: gcp-gcs-sa-volume

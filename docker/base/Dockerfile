@@ -14,34 +14,35 @@ ARG DIST_TAR="polynote-dist.tar.gz"
 
 WORKDIR /opt
 
-RUN apt update -y && \
-    apt install --yes --no-install-recommends wget build-essential
-    
-RUN if test "${SCALA_VERSION}" = "2.12"; then export DIST_TAR="polynote-dist-2.12.tar.gz"; fi && \
-    wget -q https://github.com/polynote/polynote/releases/download/$POLYNOTE_VERSION/$DIST_TAR && \
-    tar xfzp $DIST_TAR && \
-    echo "DIST_TAR=$DIST_TAR" && \
-    rm $DIST_TAR
+# RUN apt update -y && \
+#     apt install --yes --no-install-recommends wget build-essential
 
-RUN pip3 install -r ./polynote/requirements.txt
+RUN python -V    
+# RUN if test "${SCALA_VERSION}" = "2.12"; then export DIST_TAR="polynote-dist-2.12.tar.gz"; fi && \
+#     wget -q https://github.com/polynote/polynote/releases/download/$POLYNOTE_VERSION/$DIST_TAR && \
+#     tar xfzp $DIST_TAR && \
+#     echo "DIST_TAR=$DIST_TAR" && \
+#     rm $DIST_TAR
 
-# to wrap up, we create (safe)user
-ENV UID 1000
-ENV NB_USER polly
+# RUN pip3 install -r ./polynote/requirements.txt
 
-RUN adduser --disabled-password \
-    --gecos "Default user" \
-    --uid ${UID} \
-    ${NB_USER}
+# # to wrap up, we create (safe)user
+# ENV UID 1000
+# ENV NB_USER polly
 
-# allow user access to the WORKDIR
-RUN chown -R ${NB_USER}:${NB_USER} /opt/
+# RUN adduser --disabled-password \
+#     --gecos "Default user" \
+#     --uid ${UID} \
+#     ${NB_USER}
 
-# start image as (safe)user
-USER ${NB_USER}
+# # allow user access to the WORKDIR
+# RUN chown -R ${NB_USER}:${NB_USER} /opt/
 
-# expose the (internal) port that polynote runs on
-EXPOSE 8192
+# # start image as (safe)user
+# USER ${NB_USER}
 
-# start polynote on container run
-ENTRYPOINT ["./polynote/polynote.py"]
+# # expose the (internal) port that polynote runs on
+# EXPOSE 8192
+
+# # start polynote on container run
+# ENTRYPOINT ["./polynote/polynote.py"]

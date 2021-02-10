@@ -1,7 +1,7 @@
 ARG POLYNOTE_VERSION="0.3.12-2.12" 
 ARG SCALA_VERSION="2.12"
-FROM polynote/polynote:0.3.12-2.12
-# FROM polynote/polynote:${POLYNOTE_VERSION}-${SCALA_VERSION}
+# FROM chethanuk/polynote:0.3.12-py38-base
+FROM polynote/polynote:${POLYNOTE_VERSION}-${SCALA_VERSION}
 
 ARG HADOOP_BASE_VERSION="3.2"
 ARG HADOOP_VERSION="3.2.2"
@@ -15,8 +15,7 @@ WORKDIR /opt
 USER root
 
 # Uid: ( 1000/   polly)   Gid: ( 1000/   polly)
-RUN chown -R polly:polly /opt &&\
-    chown -R polly:polly /opt/config
+RUN chown -R polly:polly /opt
 COPY install_spark.sh .
 RUN ./install_spark.sh && rm ./install_spark.sh
 ENV SPARK_HOME="/opt/spark"

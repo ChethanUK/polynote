@@ -17,10 +17,9 @@ spec:
   {{- include "polynote.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
-      {{- toYaml . | nindent 8 }}
-      {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{ toYaml .Values.podAnnotations | indent 8 }}
       labels:
     {{- include "polynote.selectorLabels" . | nindent 8 }}
     spec:
@@ -29,7 +28,7 @@ spec:
       {{- toYaml . | nindent 8 }}
       {{- end }}
       restartPolicy: Always
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 30
       serviceAccountName: {{ include "polynote.serviceAccountName" . }}
       securityContext:
       {{- toYaml .Values.podSecurityContext | nindent 8 }}
